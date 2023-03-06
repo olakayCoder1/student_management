@@ -1,0 +1,68 @@
+from student_management.utils import db
+from .auth.views import auth_namespace
+from .models import (
+    User,Teacher,
+    Score, Grade,Admin,
+    Student,StudentCourse)
+from flask import Flask
+from flask_restx import Api
+from flask_migrate import Migrate 
+from student_management.configurations import config_dict
+from pathlib import Path 
+from flask_jwt_extended import JWTManager
+from werkzeug.exceptions import NotFound, MethodNotAllowed
+
+
+def create_app(config=config_dict['dev']):
+    app = Flask(__name__)
+    app.config['DEBUG'] = True  # !!!REMOVE LATER
+    app.config.from_object(config)
+
+    db.init_app(app)
+
+    jwt = JWTManager(app)
+
+    migrate = Migrate(app, db)
+
+    authorizations = {
+        "Bearer Auth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": "Add a JWT token to the header with ** Bearer &lt;JWT&gt; ** token to authorize"
+        }
+    }
+
+    api = Api(
+        app,
+        title='Student Management System API',
+        description='A student management system REST API service',
+        authorizations=authorizations,
+        security='Bearer Auth'
+        )
+
+
+    api.add_namespace(auth_namespace, path='/auth')
+
+    @api.errorhandler(NotFound)
+    def not_found(error):
+        return {"error": "Not Found"}, 404
+
+    @api.errorhandler(MethodNotAllowed)
+    def method_not_allowed(error):
+        return {"error": "Method Not Allowed"}, 404
+
+    @app.shell_context_processor
+    def make_shell_context():
+        return {
+            'db': db,
+            'User': User,
+            'Teacher': Teacher,
+            'Score': Score,
+            'Grade': Grade,
+            'Admin': Admin,
+            'Student': Student,
+            'StudentCourse': StudentCourse,
+        }
+
+    return app
