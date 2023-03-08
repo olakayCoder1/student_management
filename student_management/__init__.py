@@ -2,8 +2,9 @@ from student_management.utils import db
 from .auth.views import auth_namespace
 from student_management.student.views import  students_namespace
 from student_management.institution.views.courses import  courses_namespace
+from student_management.signals import populate_db
 from .models import (
-    User,Teacher,
+    User,Teacher,Course,
     Score, Grade,Admin,
     Student,StudentCourse)
 from flask import Flask
@@ -66,6 +67,9 @@ def create_app(config=config_dict['dev']):
             'Admin': Admin,
             'Student': Student,
             'StudentCourse': StudentCourse,
+            'Course': Course,
         }
 
+
+    
     return app
