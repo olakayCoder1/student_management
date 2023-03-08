@@ -9,6 +9,7 @@ BASE_DIR=os.path.dirname(os.path.realpath(__file__))
 UPLOAD_FOLDER = 'static/uploads'
 class Config:
     SECRET_KEY=os.getenv('SECRET_KEY')
+    JWT_SECRET_KEY=os.getenv('JWT_SECRET_KEY') 
     SQLALCHEMY_TRACK_MODIFICATIONS=True 
     ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 

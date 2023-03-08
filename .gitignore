@@ -3,3 +3,4 @@ __pycache__/
 database.sqlite3
 help.txt
 .env
+olakay.py

@@ -1,11 +1,6 @@
-
 from student_management import db
 from datetime import datetime
 
-
-# @login_manager.user_loader
-# def load_user(user_id):
-#     return User.query.get(int(user_id))
 
 class User(db.Model ):
     __tablename__ = 'users'
@@ -16,7 +11,7 @@ class User(db.Model ):
     first_name = db.Column(db.String(100), nullable=False )
     last_name = db.Column(db.String(100), nullable=False )
     password_hash = db.Column(db.String(64) , nullable=False )
-    password_reset_token = db.Column(db.String(64) , nullable=False )
+    password_reset_token = db.Column(db.String(64) , nullable=True )
     created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
 
     user_type = db.Column(db.String(10))
@@ -35,6 +30,10 @@ class User(db.Model ):
         db.session.delete(self)
         db.session.commit()
 
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.query.get_or_404(id)
+
     def __repr__(self) -> str:
         return self.email
 
@@ -47,11 +46,22 @@ class Admin(User):
 
     id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     designation = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
 
     __mapper_args__ = {
         'polymorphic_identity': 'admin'
     }
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.query.get_or_404(id)
 
 
 class Student(User):
@@ -60,24 +70,51 @@ class Student(User):
     id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     admission_no = db.Column(db.String(20))
     courses = db.relationship('Course', secondary='student_course')
-    grades = db.relationship('Grade', secondary='student_grade')
-    created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
+    score = db.relationship('Score', backref='student_score', lazy=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'student'
     }
+
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.query.get_or_404(id)
+
 
 class Teacher(User):
     __tablename__ = 'teachers'
 
     id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     employee_no = db.Column(db.String(20))
-    courses = db.relationship('Course', backref='teacher')
-    created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
+    courses = db.relationship('Course', backref='teacher_course')
 
     __mapper_args__ = {
         'polymorphic_identity': 'teacher'
     }
+
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.query.get_or_404(id)
+
 
 class Course(db.Model):
     __tablename__ = 'courses'
@@ -85,9 +122,25 @@ class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     course_code = db.Column(db.String(10), unique=True)
+    credit_hours = db.Column(db.Integer, default=1) 
     teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'))
-    grade = db.relationship('Grade', secondary='course_grade')
     created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.query.get_or_404(id)
+
+
+
 
 class StudentCourse(db.Model):
     __tablename__ = 'student_course'
@@ -97,24 +150,81 @@ class StudentCourse(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'))
     created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
 
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.query.get_or_404(id)
+    
+
+    @classmethod
+    def get_students_in_course_by(cls, course_id):
+        students = (
+            Student.query.join(StudentCourse)
+            .join(Course).filter(Course.id == course_id).all()
+        )
+        return students
+    
+
+    @classmethod
+    def get_student_courses(cls, student_id):
+        courses = (
+            Course.query.join(StudentCourse)
+            .join(Student).filter(Student.id == student_id).all()
+        )
+        return courses
+    
+
+
+
+
 class Score(db.Model):
     __tablename__ = 'scores'
 
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'))
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'))
-    score = db.Column(db.Float)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    score = db.Column(db.Float , nullable=False)
     created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
+
     def __init__(self, student_id, course_id, score):
         self.student_id = student_id
         self.course_id = course_id
         self.score = score
 
 
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.query.get_or_404(id)
+
 
 class Grade(db.Model):
+    __tablename__ = 'grades'
+
     id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
-    score = db.Column(db.Float, nullable=False)
+    name = db.Column(db.String(10), nullable=False)
+    min = db.Column(db.Integer, nullable=False)
+    max = db.Column(db.Integer, nullable=False)
+    points = db.Column(db.Float, nullable=False)
     created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
+
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.query.get_or_404(id)

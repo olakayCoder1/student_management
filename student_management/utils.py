@@ -5,13 +5,20 @@ from email.mime.multipart import MIMEMultipart
 # import environ
 from email.message import EmailMessage
 import smtplib
-import asyncio 
 import os  
 db = SQLAlchemy()
+import string
+import secrets
 
 
 
+def generate_reset_token(length):
+    return secrets.token_hex(length)
 
+
+def random_char(length):
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for i in range(length))
 
 sender_email = os.getenv('EMAIL_SENDER')
 password = os.getenv('EMAIL_PASSWORD')
@@ -19,15 +26,12 @@ password = os.getenv('EMAIL_PASSWORD')
 
 
 class MailServices():
-    def forget_password_mail(*args ,**kwargs):
-        receiver_email = kwargs['email']
-        token = kwargs['token']
-        uuidb64 = kwargs['uuidb64']
+    def forget_password_mail(receiver_email , token ):
         message = MIMEMultipart("alternative")
-        message["Subject"] = "Reset your Buskeit password"
+        message["Subject"] = "Reset your password"
         message["From"] = sender_email
         message["To"] = receiver_email
-        reset_link = f'http://127.0.0.1:3000/password/{token}/{uuidb64}/reset'
+        reset_link = f'http://127.0.0.1:5000/password/{token}/reset'
         html = ('accounts/password-reset-mail.html', {'reset_link': reset_link})
         part = MIMEText(html, "html")
         # Add HTML/plain-text parts to MIMEMultipart message

@@ -1,5 +1,7 @@
 from student_management.utils import db
 from .auth.views import auth_namespace
+from student_management.student.views import  students_namespace
+from student_management.institution.views.courses import  courses_namespace
 from .models import (
     User,Teacher,
     Score, Grade,Admin,
@@ -15,7 +17,6 @@ from werkzeug.exceptions import NotFound, MethodNotAllowed
 
 def create_app(config=config_dict['dev']):
     app = Flask(__name__)
-    app.config['DEBUG'] = True  # !!!REMOVE LATER
     app.config.from_object(config)
 
     db.init_app(app)
@@ -37,12 +38,14 @@ def create_app(config=config_dict['dev']):
         app,
         title='Student Management System API',
         description='A student management system REST API service',
-        authorizations=authorizations,
+        authorizations=authorizations, 
         security='Bearer Auth'
         )
 
 
     api.add_namespace(auth_namespace, path='/auth')
+    api.add_namespace(students_namespace, path='/students')
+    api.add_namespace(courses_namespace, path='/courses')
 
     @api.errorhandler(NotFound)
     def not_found(error):
