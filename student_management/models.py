@@ -215,6 +215,8 @@ class Score(db.Model):
         return cls.query.get_or_404(id)
 
 
+
+#  !!! TODO DELETE TABLE
 class Grade(db.Model):
     __tablename__ = 'grades'
 
