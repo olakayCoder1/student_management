@@ -1,4 +1,4 @@
-from student_management.models import Student, Course, Score , User , Grade, Teacher , StudentCourse
+from student_management.models import Student, Course, Teacher , StudentCourse
 from student_management import db 
 from student_management.student.serializers import students_fields_serializer
 from student_management.utils import random_char
@@ -13,8 +13,8 @@ courses_namespace = Namespace('courses', description='Namespace for courses')
 
 course_creation_serializer = courses_namespace.model(
     'Course creation serializer', {
-        'name': fields.String(required=True, description="A course name"),
-        # 'course_code': fields.String(description="A course code"),
+        'name': fields.String(required=True, description="Course name"),
+        'credit_hours': fields.Integer(description="Course credit hours"),
         'teacher_id': fields.Integer(required=True, description="Course teacher id"),
     }
 )
@@ -28,14 +28,6 @@ student_course_register_serializer = courses_namespace.model(
  
 students_serializer = courses_namespace.model( 'Student Serializer', students_fields_serializer)
 
-register_fields_serializer = {
-    'email': fields.String(required=True, description='User email address'),
-    'first_name': fields.String(required=True, description="First name"),
-    'last_name': fields.String(required=True, description="Lat name"),
-    'user_type': fields.String(required=True, description="User type(Role)"),
-    'password': fields.String(required=True, description="A password"),
-}
- 
 course_teacher_serializer = courses_namespace.model(
     'Course Teacher serializer', {
         'identifier': fields.String( description='User email address'),
@@ -47,6 +39,7 @@ course_teacher_serializer = courses_namespace.model(
     }
 )
 course_retrieve_serializer = courses_namespace.model('Course Retrieval serializer', course_retrieve_fields_serializer)
+
 
 
 

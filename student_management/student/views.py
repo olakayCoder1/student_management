@@ -1,4 +1,5 @@
 from student_management import db
+from student_management.data_population import populate_db
 from flask import request
 from student_management.models import Student, StudentCourse , User , Course , Score , Grade
 from flask_jwt_extended import jwt_required, get_jwt_identity  
@@ -8,7 +9,7 @@ from .serializers import (
     course_fields_serializer,
     student_score_add_fields_serializer
 )
-from student_management.utils import convert_grade_to_gpa
+from student_management.utils import convert_grade_to_gpa , get_grade
 from student_management.institution.serializers_course import course_retrieve_fields_serializer
 from http import HTTPStatus
 
@@ -33,6 +34,7 @@ class StudentsListView(Resource):
         description=' jhghjkl'
     )
     def get(self):
+        populate_db()
         students = Student.query.all()
         return students , HTTPStatus.OK
 
@@ -149,11 +151,13 @@ class StudentCourseScoreAddView(Resource):
         if student_in_course:
             # check if the student already have a score in the course
             score = Score.query.filter_by(student_id=student_id, course_id=course_id).first()
+            grade = get_grade(score_value)
             if score:
                 score.score = score_value
+                score.grade = grade
             else:
                 # create a new score object and save to database
-                score = Score(student_id=student_id, course_id=course_id, score=score_value)
+                score = Score(student_id=student_id, course_id=course_id, score=score_value , grade=grade)
             try:
                 score.save()
                 return {'message': 'Score added successfully'}, HTTPStatus.CREATED
@@ -169,20 +173,22 @@ class StudentCourseScoreAddView(Resource):
 @students_namespace.route('/<int:student_id>/gpa')
 class StudentGPAView(Resource):
 
-
-    def post(self, student_id):
+    def get(self, student_id):
         """
         Calculate a student gpa score
         """     
         student = Student.get_by_id(student_id)
+        # get all the course the students offer
         courses = StudentCourse.get_student_courses(student.id)
         total_weighted_gpa = 0
         total_credit_hours = 0
         for course in courses:
+            # check if student have a score for the course
             score_exist = Score.query.filter_by(student_id=student.id, course_id=course.id).first()
             if score_exist:
-                score = score_exist.score
-                gpa = convert_grade_to_gpa(score)
+                grade = score_exist.grade
+                # calculate the gpa for the course
+                gpa = convert_grade_to_gpa(grade)
                 weighted_gpa = gpa * course.credit_hours
                 total_weighted_gpa += weighted_gpa
                 total_credit_hours += course.credit_hours

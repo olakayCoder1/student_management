@@ -2,7 +2,6 @@ from student_management.utils import db
 from .auth.views import auth_namespace
 from student_management.student.views import  students_namespace
 from student_management.institution.views.courses import  courses_namespace
-from student_management.signals import populate_db
 from .models import (
     User,Teacher,Course,
     Score, Grade,Admin,

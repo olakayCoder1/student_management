@@ -6,7 +6,7 @@ class User(db.Model ):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer(), primary_key=True)
-    identifier = db.Column(db.String(50), unique=True)
+    identifier = db.Column(db.String(50), unique=True , nullable=False )
     email =  db.Column( db.String(100) , nullable=False , unique=True )
     first_name = db.Column(db.String(100), nullable=False )
     last_name = db.Column(db.String(100), nullable=False )
@@ -193,6 +193,7 @@ class Score(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
     score = db.Column(db.Float , nullable=False)
+    grade = db.Column(db.String(5) , nullable=True )
     created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
 
     def __init__(self, student_id, course_id, score):

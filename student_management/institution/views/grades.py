@@ -55,17 +55,11 @@ class StudentsScoreAddView(Resource):
 
     @courses_namespace.marshal_with(course_retrieve_serializer)
     def get(self):
-        """
-        Retrieve all available courses
-        """
         courses = Course.query.all()
         return courses , HTTPStatus.OK
     
     @courses_namespace.expect(course_creation_serializer) 
     def post(self):
-        """
-        Create a new course
-        """
         data = request.get_json()
         teacher = Teacher.query.filter_by(id=data.get('teacher_id')).first()
         if teacher:
