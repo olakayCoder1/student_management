@@ -1,7 +1,7 @@
 from student_management import db
 from student_management.data_population import populate_db
 from flask import request
-from student_management.models import Student, StudentCourse , User , Course , Score , Grade
+from student_management.models import Student, StudentCourse , User , Course , Score , Admin
 from flask_jwt_extended import jwt_required, get_jwt_identity  
 from flask_restx import Namespace, Resource
 from .serializers import (
@@ -31,10 +31,21 @@ class StudentsListView(Resource):
 
     @students_namespace.marshal_with(students_serializer)
     @students_namespace.doc(
-        description=' jhghjkl'
+        description="""
+            This endpoint is accessible only to an admin user. 
+            It allows the admin retrieve all student is the school
+            """
     )
+    @jwt_required()
     def get(self):
-        populate_db()
+        """
+        Retrieve all students in school
+        """
+        # populate_db() 
+        authenticated_user_id = get_jwt_identity() 
+        admin = Admin.query.filter_by(id=authenticated_user_id).first()   
+        if not admin :
+            return {'message':'You are not authorized to the endpoint'}, HTTPStatus.UNAUTHORIZED
         students = Student.query.all()
         return students , HTTPStatus.OK
 
@@ -45,11 +56,24 @@ class StudentsListView(Resource):
 class StudentRetrieveDeleteUpdateView(Resource):
 
     @students_namespace.marshal_with(students_serializer)
+    @students_namespace.doc(
+        description="""
+            This endpoint is accessible only to an admin and teacher. 
+            It allows the  retrieval of a student
+            """
+    )
+    @jwt_required()
     def get(self, student_id):
         """
         Retrieve a student 
         """
-        student = Student.get_by_id(student_id)
+        authenticated_user_id = get_jwt_identity() 
+        user = User.query.filter_by(id=authenticated_user_id).first()   
+        if not user or user.user_type == 'student' :
+            return {'message':'You are not authorized to the endpoint'}, HTTPStatus.UNAUTHORIZED
+        student = Student.query.filter_by(id=student_id).first()
+        if not student:
+            return {'message':'Student does not exist'}, HTTPStatus.NOT_FOUND
         return student , HTTPStatus.OK
      
 
@@ -71,19 +95,24 @@ class StudentCourseRegisterView(Resource):
 
     @students_namespace.marshal_with(courses_serializer)
     @students_namespace.expect(courses_add_serializer)
+    @students_namespace.doc(
+        description="""
+            This endpoint is accessible only to a student. 
+            It allows a student register for a course
+            """
+    )
     @jwt_required()  
     def post(self):
         """ 
         Register for a course 
         """     
-        authenticated_user_id = get_jwt_identity()
-        user = User.get_by_id(authenticated_user_id)
-        if user.user_type != 'student':
+        authenticated_user_id = get_jwt_identity() 
+        student = Student.query.filter_by(id=authenticated_user_id).first()   
+        if not student :
             return {'message':'You are not authorized to the endpoint'}, HTTPStatus.UNAUTHORIZED
         data = request.get_json()
-        course = Course.get_by_id(data.get('course_id'))
-        student = Student.query.filter_by(id=user.id).first()
-        if student:
+        course = Course.query.filter_by(id=data.get('course_id')).first()  
+        if course:
             #check if student has registered for the course before
             get_student_in_course = StudentCourse.query.filter_by(student_id=student.id, course_id=course.id).first()
             if get_student_in_course:
@@ -91,17 +120,23 @@ class StudentCourseRegisterView(Resource):
                     'message':'Course has already been registered'
                     } , HTTPStatus.OK
             # Register the student to the course
-            add_student_to_course = StudentCourse(student_id=user.id, course_id=course.id)
+            add_student_to_course = StudentCourse(student_id=student.id, course_id=course.id)
             try:
                 add_student_to_course.save()
                 return {'message': 'Course registered successfully'} , HTTPStatus.CREATED
             except:
                 db.session.rollback()
                 return {'message': 'An error occurred while registering course'}, HTTPStatus.INTERNAL_SERVER_ERROR
-        return {'message': 'Student does not exist'} , HTTPStatus.NOT_FOUND
+        return {'message': 'Course does not exist'} , HTTPStatus.NOT_FOUND
 
 
     @students_namespace.expect(courses_add_serializer)
+    @students_namespace.doc(
+        description="""
+            This endpoint is accessible only to a student. 
+            It allows a student unregister for a course
+            """
+    )
     @jwt_required()
     def delete(self):
         """
@@ -109,12 +144,13 @@ class StudentCourseRegisterView(Resource):
         """
         data = request.get_json()
         authenticated_user_id = get_jwt_identity()
-        user = User.get_by_id(authenticated_user_id)
-        if user.user_type != 'student':
+        student = Student.query.filter_by(id=authenticated_user_id).first()   
+        if not student :
             return {'message':'You are not authorized to the endpoint'}, HTTPStatus.UNAUTHORIZED
-        student = Student.query.filter_by(id=user.id).first()
-        course = Course.get_by_id(data.get('course_id'))
-        if student:
+        
+        data = request.get_json()
+        course = Course.query.filter_by(id=data.get('course_id')).first()  
+        if course:
             #check if student has registered for the course before
             get_student_in_course = StudentCourse.query.filter_by(student_id=student.id, course_id=course.id).first()
             if get_student_in_course:
@@ -127,6 +163,8 @@ class StudentCourseRegisterView(Resource):
             return {
                     'message':'You have not register for this course'
                     } , HTTPStatus.BAD_REQUEST
+
+        return {'message': 'Course does not exist'} , HTTPStatus.NOT_FOUND
     
 
 
@@ -134,18 +172,33 @@ class StudentCourseRegisterView(Resource):
 class StudentCourseScoreAddView(Resource):
 
     @students_namespace.expect(student_score_add_serializer)
-    def post(self):
+    @students_namespace.doc(
+        description='''
+            This endpoint is accessible only to a teacher. 
+            It allow teacher add a student score in a course. 
+            NOTE : The teacher must be the course teacher
+            '''
+    )
+    @jwt_required()
+    def put(self):
         """
         Add a student course score
         """     
+        authenticated_user_id = get_jwt_identity()
         student_id = request.json['student_id']
         course_id = request.json['course_id']
         score_value = request.json['score']
+        user = User.query.filter_by(id=authenticated_user_id).first()   
+        if not user or user.user_type != 'teacher' :
+            return {'message':'You are not authorized to this endpoint'}, HTTPStatus.UNAUTHORIZED
         # check if student and course exist
-        student = Student.query.get(student_id)
-        course = Course.query.get(course_id)
+        student = Student.query.filter_by(id = student_id).first()
+        course = Course.query.filter_by(id=course_id).first()
         if not student or not course:
             return {'message': 'Student or course not found'}, HTTPStatus.NOT_FOUND
+        #  check if teacher is the course teacher
+        if course.teacher_id != user.id :
+            return {'message':'You cannot add score for this student in this course'}, HTTPStatus.UNAUTHORIZED
         # check if student is registered for the course
         student_in_course = StudentCourse.query.filter_by(course_id=course.id, student_id=student.id).first() 
         if student_in_course:
@@ -194,14 +247,14 @@ class StudentGPAView(Resource):
                 total_credit_hours += course.credit_hours
         if total_credit_hours == 0:
             return {
-                'message':'GPA calculation completed',
+                'message':'GPA calculation completed.',
                 'gpa': total_credit_hours
             }, HTTPStatus.OK
         else:
             gpa =  total_weighted_gpa / total_credit_hours
             return {
                 'message':'GPA calculation completed',
-                'gpa': gpa
+                'gpa': round(gpa , 2 ) 
             }, HTTPStatus.OK
 
         

@@ -196,10 +196,6 @@ class Score(db.Model):
     grade = db.Column(db.String(5) , nullable=True )
     created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
 
-    def __init__(self, student_id, course_id, score):
-        self.student_id = student_id
-        self.course_id = course_id
-        self.score = score
 
 
     def save(self):
@@ -209,24 +205,6 @@ class Score(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-
-    @classmethod
-    def get_by_id(cls, id):
-        return cls.query.get_or_404(id)
-
-
-
-#  !!! TODO DELETE TABLE
-class Grade(db.Model):
-    __tablename__ = 'grades'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(10), nullable=False)
-    min = db.Column(db.Integer, nullable=False)
-    max = db.Column(db.Integer, nullable=False)
-    points = db.Column(db.Float, nullable=False)
-    created_at = db.Column(db.DateTime() , nullable=False , default=datetime.utcnow)
-
 
     @classmethod
     def get_by_id(cls, id):

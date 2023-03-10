@@ -4,7 +4,7 @@ from student_management.student.views import  students_namespace
 from student_management.institution.views.courses import  courses_namespace
 from .models import (
     User,Teacher,Course,
-    Score, Grade,Admin,
+    Score,Admin,
     Student,StudentCourse)
 from flask import Flask
 from flask_restx import Api
@@ -62,7 +62,6 @@ def create_app(config=config_dict['dev']):
             'User': User,
             'Teacher': Teacher,
             'Score': Score,
-            'Grade': Grade,
             'Admin': Admin,
             'Student': Student,
             'StudentCourse': StudentCourse,

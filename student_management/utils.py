@@ -3,7 +3,6 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 # import environ
-from email.message import EmailMessage
 import smtplib
 import os  
 db = SQLAlchemy()
@@ -13,12 +12,19 @@ import secrets
 
 
 def generate_reset_token(length):
+    """ Generate a password reset token 
+    param:
+        length : length of token to be generated"""
     return secrets.token_hex(length)
 
 
 def random_char(length):
+    """ Generate a random string 
+    param:
+        length : length of string to be generated"""
     alphabet = string.ascii_letters + string.digits
     return ''.join(secrets.choice(alphabet) for i in range(length))
+
 
 sender_email = os.getenv('EMAIL_SENDER')
 password = os.getenv('EMAIL_PASSWORD')
@@ -27,6 +33,9 @@ password = os.getenv('EMAIL_PASSWORD')
 
 
 def get_grade(score):
+    """
+    Convert a score to corresponding grade
+    """
     if score < 100 and score > 89:
         return 'A'
     elif score < 90 and score > 79:
@@ -44,6 +53,9 @@ def get_grade(score):
 
 
 def convert_grade_to_gpa(grade):
+    """
+    Convert a grade to the corresponding point value
+    """
     if grade == 'A':
         return 4.0
     elif grade == 'B':
@@ -58,6 +70,9 @@ def convert_grade_to_gpa(grade):
 
 class MailServices():
     def forget_password_mail(receiver_email , token ):
+        """
+        Send a forget password mail instruction to user
+        """
         message = MIMEMultipart("alternative")
         message["Subject"] = "Reset your password"
         message["From"] = sender_email

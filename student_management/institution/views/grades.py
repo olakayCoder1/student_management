@@ -1,4 +1,4 @@
-from student_management.models import Student, Course, Score , User , Grade, Teacher , StudentCourse
+from student_management.models import Student, Course, Score , User , Teacher , StudentCourse
 from student_management import db 
 from student_management.student.serializers import students_fields_serializer
 from student_management.utils import random_char

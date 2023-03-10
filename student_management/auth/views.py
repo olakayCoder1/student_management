@@ -44,7 +44,17 @@ password_reset_serializer = auth_namespace.model('Password reset serializer', pa
 class UserRegistrationView(Resource):
 
     @auth_namespace.expect(register_serializer)
+    @auth_namespace.doc(
+        description="""
+            This endpoint is accessible only to all user. 
+            It allows the  creation of account base on the user type
+            As an admin (user_type='admin')
+            As a teacher (user_type='teacher')
+            As a student (user_type='student')
+            """
+    )
     def post(self):
+        """ Create a new user ( Admin/Teacher/Student) """
         data = request.get_json()
         # Check if user already exists
         user = User.query.filter_by(email=data.get('email', None)).first()
@@ -103,6 +113,12 @@ class UserRegistrationView(Resource):
 # Route for Token refresh 
 @auth_namespace.route('/refresh')
 class Refresh(Resource):
+    @auth_namespace.doc(
+        description="""
+            This endpoint is accessible only to all user. 
+            It allows user refresh their tokens
+            """
+    )
     @jwt_required(refresh=True)
     def post(self):
         """
@@ -111,15 +127,27 @@ class Refresh(Resource):
         username = get_jwt_identity()
 
         access_token = create_access_token(identity=username)
+        refresh_token = create_refresh_token(identity=username)
 
-        return {'access_token': access_token}, HTTPStatus.OK
+        return {
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+
+            }, HTTPStatus.OK
 
 
 # Route for login user in( Authentication )
 @auth_namespace.route('/login')
 class UserLoginView(Resource):
     @auth_namespace.expect(login_serializer)
+    @auth_namespace.doc(
+        description="""
+            This endpoint is accessible only to all user. 
+            It allows user authentication
+            """
+    )
     def post(self):
+        """ Authenticate a user"""
         email = request.json.get('email')
         password = request.json.get('password')
         user = User.query.filter_by(email=email).first()
@@ -140,7 +168,14 @@ class UserLoginView(Resource):
 @auth_namespace.route('/reset_password_request')
 class PasswordResetRequestView(Resource):
     @auth_namespace.expect(password_reset_request_fields_serializer)
+    @auth_namespace.doc(
+        description="""
+            This endpoint is accessible only to all user. 
+            It allows user request new password if they forget their password 
+            """
+    )
     async def post(self):
+        """ Request a password reset"""
         email = request.json.get('email')
         user = User.query.filter_by(email=email).first()
         if user:
@@ -160,7 +195,14 @@ class PasswordResetRequestView(Resource):
 @auth_namespace.route('/reset_password/<token>')
 class PasswordResetView(Resource):
     @auth_namespace.expect(password_reset_fields_serializer)
+    @auth_namespace.doc(
+        description="""
+            This endpoint is accessible only to all user. 
+            It allows user reset new password
+            """
+    )
     def post(self):
+        """ Reset password"""
         token = request.json.get('token')
         user = User.query.filter_by(password_reset_token=token).first()
         if not user:

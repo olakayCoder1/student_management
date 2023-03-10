@@ -48,7 +48,7 @@ def populate_db():
 
     
     for course in courses:
-        teacher = Teacher.query.filter_by(email='teacher1@gmail.com')
+        teacher = Teacher.query.filter_by(email='teacher1@gmail.com').first()
         data = Course(course_code=course['course_code'],credit_hours=course['credit_hours'],
                        name=course['name'], teacher_id=teacher.id
                 )
@@ -74,5 +74,3 @@ def populate_db():
             pass
 
 
-
-populate_db()
