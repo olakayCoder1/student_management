@@ -1,5 +1,4 @@
-from student_management.models import Student, Course, Score , User , Teacher , StudentCourse
-from student_management import db 
+from student_management.models import Course, Teacher 
 from student_management.student.serializers import students_fields_serializer
 from student_management.utils import random_char
 from flask_restx import Namespace, Resource , fields

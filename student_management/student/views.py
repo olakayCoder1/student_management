@@ -1,8 +1,7 @@
 from student_management import db
-from student_management.data_population import populate_db
 from flask import request
-from student_management.models import Student, StudentCourse , User , Course , Score , Admin
-from flask_jwt_extended import jwt_required, get_jwt_identity  
+from student_management.models import Student, StudentCourse , User , Course , Score 
+from flask_jwt_extended import  get_jwt_identity  
 from flask_restx import Namespace, Resource
 from .serializers import (
     students_fields_serializer , 
