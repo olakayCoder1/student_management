@@ -1,9 +1,5 @@
-from student_management.models import (
-    Student, Course, 
-    Teacher , 
-    StudentCourse, 
-    Admin , User
-)
+from student_management.models import ( Student, Course,  Teacher ,  StudentCourse , Score )
+from student_management.decorators import ( staff_required , admin_required ,teacher_required , student_required )
 from student_management import db 
 from student_management.student.serializers import students_fields_serializer
 from student_management.utils import random_char
@@ -11,10 +7,11 @@ from flask_restx import Namespace, Resource , fields
 from http import HTTPStatus
 from flask import request
 from ..serializers_course import course_retrieve_fields_serializer
-from flask_jwt_extended import jwt_required, get_jwt_identity  
+from flask_jwt_extended import jwt_required , get_jwt_identity
+
+
 
 courses_namespace = Namespace('courses', description='Namespace for courses')
-
 
 course_creation_serializer = courses_namespace.model(
     'Course creation serializer', {
@@ -73,15 +70,11 @@ class CoursesListView(Resource):
             It allows admin create a new course
             """
     )
-    @jwt_required()
+    @admin_required()
     def post(self):
         """
         Create a new course
         """
-        authenticated_user_id = get_jwt_identity() 
-        admin = Admin.query.filter_by(id=authenticated_user_id).first()   
-        if not admin :
-            return {'message':'You are not authorized to the endpoint'}, HTTPStatus.UNAUTHORIZED
         data = request.get_json()
         teacher = Teacher.query.filter_by(id=data.get('teacher_id')).first()
         if teacher:
@@ -120,15 +113,11 @@ class CourseRetrievalView(Resource):
             It allows admin delete a course
             """
     )
-    @jwt_required()
+    @admin_required()
     def delete(self, course_id):
         """
         Delete a course
         """
-        authenticated_user_id = get_jwt_identity() 
-        admin = Admin.query.filter_by(id=authenticated_user_id).first()   
-        if not admin :
-            return {'message':'You are not authorized to the endpoint'}, HTTPStatus.UNAUTHORIZED
         course = Course.query.filter_by(course_id).first()
         if not course:
             return {'message':'Course does not exist'}, HTTPStatus.NOT_FOUND
@@ -152,15 +141,11 @@ class CourseRetrievalView(Resource):
             It allows teacher add a  student the their course
             """
     )
-    @jwt_required()
+    @teacher_required()
     def post(self, course_id ):
         """
         Register a student to a course
         """
-        authenticated_user_id = get_jwt_identity() 
-        teacher = Teacher.query.filter_by(id=authenticated_user_id).first()   
-        if not teacher :
-            return {'message':'You are not authorized to the endpoint'}, HTTPStatus.UNAUTHORIZED
         data = request.get_json()
         student_id = data.get('student_id')
         # check if student and course exist
@@ -186,21 +171,18 @@ class CourseRetrievalView(Resource):
         return {'message': 'Student does not exist'} , HTTPStatus.NOT_FOUND
     
 
+
     @courses_namespace.doc(
         description="""
             This endpoint is accessible to a teacher. 
             It allows teacher remove a  student from their course
             """
     )
-    @jwt_required()
+    @teacher_required()
     def delete(self, course_id):
         """
         Unregister a student course
         """
-        authenticated_user_id = get_jwt_identity() 
-        teacher = Teacher.query.filter_by(id=authenticated_user_id).first()   
-        if not teacher :
-            return {'message':'You are not authorized to the endpoint'}, HTTPStatus.UNAUTHORIZED
         data = request.get_json()
         student_id = data.get('student_id')
         # check if student and course exist
@@ -236,20 +218,45 @@ class CourseStudentsListView(Resource):
             It allows the retrieval of all students in a course
             """
     )
-    @jwt_required()
+    @staff_required()
     def get(self, course_id ):
         """
         Retrieve all registered student in a course
         """
-        authenticated_user_id = get_jwt_identity() 
-        user = User.query.filter_by(id=authenticated_user_id).first()   
-        if not user or user.user_type == 'student' :
-            return {
-                'message':'You are not authorized to the endpoint'
-                }, HTTPStatus.UNAUTHORIZED
-        
-        
         course = Course.get_by_id(course_id)
         get_student_in_course = StudentCourse.get_students_in_course_by(course.id) 
         return get_student_in_course , HTTPStatus.OK
-    
+
+
+
+@courses_namespace.route('/grade')
+class CoursesGradeListView(Resource):
+
+    @courses_namespace.doc(
+        description="""
+            This endpoint is accessible to a student. 
+            It allows student retrieve all registered courses grade
+            """
+    )
+    @student_required()
+    def get(self):
+        """
+        Retrieve all student courses grade
+        """     
+        authenticated_user_id = get_jwt_identity() 
+        student = Student.query.filter_by(id=authenticated_user_id).first()  
+        courses = StudentCourse.get_student_courses(student.id)
+        response = []
+        
+        for course in courses:
+            grade_response = {}
+            score_in_course = Score.query.filter_by(student_id=student.id , course_id=course.id).first()
+            grade_response['name'] = course.name
+            if score_in_course:
+                grade_response['score'] = score_in_course.score
+                grade_response['grade'] = score_in_course.grade
+            else:
+                grade_response['score'] = None
+                grade_response['grade'] = None 
+            response.append(grade_response)
+        return response , HTTPStatus.OK

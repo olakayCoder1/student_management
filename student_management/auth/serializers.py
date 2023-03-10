@@ -23,6 +23,5 @@ register_fields_serializer = {
     'email': fields.String(required=True, description='User email address'),
     'first_name': fields.String(required=True, description="First name"),
     'last_name': fields.String(required=True, description="Lat name"),
-    'user_type': fields.String(required=True, description="User type(Role)"),
     'password': fields.String(required=True, description="A password"),
 }

@@ -6,8 +6,15 @@ import datetime
 
 def populate_db():
     admins = [
-        {'first_name':'Admin','last_name': 'AdminOne','email':'admin1@gmail.com','password':'password123',},
-        {'first_name':'Admin','last_name': 'AdminTwo','email':'admin2@gmail.com','password':'password123',},
+        {
+        'first_name':'Admin',
+        'last_name': 'AdminOne',
+        'email':'admin1@gmail.com',
+        'rc_number':'938737123',
+        'school_mail':'altschool@talenql.com',
+        'is_superadmin': True,
+        'password':'password123',
+        }
     ]
     teachers = [
         {'first_name':'Teacher','last_name': 'TeacherOne','email':'teacher1@gmail.com','password':'password123',},
@@ -18,15 +25,16 @@ def populate_db():
         {'first_name':'Student','last_name': 'StudentTwo','email':'student2@gmail.com','password':'password123',},
     ]
     courses = [
-        {'course_code':'MAT564','credit_hours': 3,'name':'Math'},
-        {'course_code':'GHT538','credit_hours': 1,'name':'Geo'},
+        {'course_code':'MAT564','credit_hours': 3,'name':'Mathematics'},
+        {'course_code':'GHT538','credit_hours': 1,'name':'Geography'},
     ]
     for user in admins:
         identifier=random_char(10)  
         current_year =  str(datetime.datetime.now().year)
         admin = Admin(email=user['email'],first_name=user['first_name'],last_name=user['last_name'], 
                     password_hash=generate_password_hash(user['password']),user_type='admin',
-                    designation='Principal', identifier=identifier
+                    designation='Principal', identifier=identifier , rc_number=user['rc_number'],
+                    school_mail=user['school_mail'], is_superadmin=user['is_superadmin']
                 )
         try:
             admin.save()

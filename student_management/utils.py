@@ -2,12 +2,13 @@ from flask_sqlalchemy import SQLAlchemy
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-# import environ
 import smtplib
-import os  
-db = SQLAlchemy()
 import string
 import secrets
+
+
+
+db = SQLAlchemy()
 
 
 
@@ -26,16 +27,14 @@ def random_char(length):
     return ''.join(secrets.choice(alphabet) for i in range(length))
 
 
-sender_email = os.getenv('EMAIL_SENDER')
-password = os.getenv('EMAIL_PASSWORD')
+password='evctrejhhdkghsmy'
+sender_email='olakaycoder1@gmail.com' 
 
 
 
 
 def get_grade(score):
-    """
-    Convert a score to corresponding grade
-    """
+    """ Convert a score to corresponding grade """
     if score < 100 and score > 89:
         return 'A'
     elif score < 90 and score > 79:
@@ -53,9 +52,7 @@ def get_grade(score):
 
 
 def convert_grade_to_gpa(grade):
-    """
-    Convert a grade to the corresponding point value
-    """
+    """Convert a grade to the corresponding point value """
     if grade == 'A':
         return 4.0
     elif grade == 'B':
@@ -89,3 +86,6 @@ class MailServices():
             server.sendmail(
                 sender_email, receiver_email, message.as_string()
             )
+# Your password reset instructions
+# Click the link below to reset your password
+# If you did not request a password reset, please ignore this email
