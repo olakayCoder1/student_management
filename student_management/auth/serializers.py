@@ -11,6 +11,11 @@ password_reset_fields_serializer = {
     'password2': fields.String(required=True, description="Confirm password"),
 }
 
+password_change_fields_serializer = {
+    'password1': fields.String(required=True, description="Password"),
+    'password2': fields.String(required=True, description="Confirm password"),
+}
+
 
 
 login_fields_serializer = {

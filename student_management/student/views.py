@@ -17,7 +17,7 @@ from student_management.institution.serializers_course import course_retrieve_fi
 from http import HTTPStatus
 
 
-students_namespace = Namespace('student', description='Namespace for Student ')
+students_namespace = Namespace('students', description='Namespace for Student ')
 
 
 
@@ -78,7 +78,7 @@ class StudentCoursesGradeListView(Resource):
     @admin_required()
     def get(self, student_id):
         """
-        Retrieve all student courses grade
+        Retrieve a student all courses grade
         """     
         courses = StudentCourse.get_student_courses(student_id)
         response = []
@@ -109,7 +109,7 @@ class StudentCoursesListView(Resource):
         return courses , HTTPStatus.OK
 
 
-@students_namespace.route('/course/add_and_drop')
+@students_namespace.route('/courses/add_and_drop')
 class StudentCourseRegisterView(Resource):
 
     @students_namespace.marshal_with(courses_serializer)

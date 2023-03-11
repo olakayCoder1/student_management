@@ -25,7 +25,7 @@ from student_management.data_population import populate_db
 from .serializers import (
     login_fields_serializer, register_fields_serializer,
     password_reset_request_fields_serializer,
-    password_reset_fields_serializer
+    password_reset_fields_serializer, password_change_fields_serializer
 ) 
 
 
@@ -37,6 +37,7 @@ login_serializer = auth_namespace.model('Login serializer', login_fields_seriali
 register_serializer = auth_namespace.model('Register serializer', register_fields_serializer)
 password_reset_request_serializer = auth_namespace.model('Password reset request serializer', password_reset_request_fields_serializer)
 password_reset_serializer = auth_namespace.model('Password reset serializer', password_reset_fields_serializer)
+password_change_serializer = auth_namespace.model('Password change serializer', password_change_fields_serializer)
 
 
 
@@ -97,8 +98,9 @@ class StudentRegistrationView(Resource):
 
 
 
-@auth_namespace.route('/teacher/register')
+@auth_namespace.route('/register/teacher')
 class TeacherCreationView(Resource):
+    @auth_namespace.expect(register_serializer)
     @auth_namespace.doc(
         description="""
             This endpoint is accessible only to an admin. 
@@ -133,7 +135,7 @@ class TeacherCreationView(Resource):
 
 
 # Route for Token refresh 
-@auth_namespace.route('/refresh')
+@auth_namespace.route('/token/refresh')
 class Refresh(Resource):
     @auth_namespace.doc(
         description="""
@@ -144,7 +146,7 @@ class Refresh(Resource):
     @jwt_required(refresh=True)
     def post(self):
         """
-            Generate Refresh Token
+            Generate new tokens
         """
         username = get_jwt_identity()
 
@@ -159,7 +161,7 @@ class Refresh(Resource):
 
 
 # Route for login user in( Authentication )
-@auth_namespace.route('/login')
+@auth_namespace.route('/token')
 class UserLoginView(Resource):
     @auth_namespace.expect(login_serializer)
     @auth_namespace.doc(
@@ -188,7 +190,7 @@ class UserLoginView(Resource):
 
 
 # Route for requesting a password reset
-@auth_namespace.route('/reset_password_request')
+@auth_namespace.route('/password-reset-request')
 class PasswordResetRequestView(Resource):
     @auth_namespace.expect(password_reset_request_fields_serializer)
     @auth_namespace.doc(
@@ -214,12 +216,12 @@ class PasswordResetRequestView(Resource):
 
 
 # Route for resetting the password
-@auth_namespace.route('/reset_password/<token>')
+@auth_namespace.route('/password-reset/<token>')
 class PasswordResetView(Resource):
     @auth_namespace.expect(password_reset_fields_serializer)
     @auth_namespace.doc(
         description="""
-            This endpoint is accessible only to all user. 
+            This endpoint is accessible  to all user. 
             It allows user reset new password
             """
     )
@@ -243,6 +245,43 @@ class PasswordResetView(Resource):
         
         return {
                 'message': 'Password does not match.'
-                }, HTTPStatus.UNAUTHORIZED
+                }, HTTPStatus.BAD_REQUEST
+
+
+
+
+
+
+# Route for resetting the password
+@auth_namespace.route('/password-change')
+class PasswordResetView(Resource):
+    @auth_namespace.expect(password_change_serializer)
+    @auth_namespace.doc(
+        description="""
+            This endpoint is accessible to all authenticated user. 
+            It allows user change new password
+            """
+    )
+    @jwt_required()
+    def post(self):
+        """ Reset password"""
+        authenticated_user_id = get_jwt_identity() 
+        auth_user = User.query.filter_by(id=authenticated_user_id).first()   
+        if not auth_user:
+            return {
+                'message': 'Cannot find record of this user.'
+                }, HTTPStatus.BAD_REQUEST
+        password1 = request.json.get('password1')
+        password2 = request.json.get('password2')
+        if password1 == password2  :
+            auth_user.set_password(password2)
+            db.session.commit()
+            return {
+                'message': 'Your password has been reset.'
+                }, HTTPStatus.OK
+        
+        return {
+                'message': 'Password does not match.'
+                }, HTTPStatus.BAD_REQUEST
 
 

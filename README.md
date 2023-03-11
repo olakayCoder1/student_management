@@ -8,6 +8,10 @@ Note: This is currently under active development
   - [Table of Contents](#table-of-contents)
   - [Live ( deployed version )](#live--deployed-version-)
   - [Testing Locally](#testing-locally)
+  - [Available Endpoint](#available-endpoint)
+    - [Auth Endpoint](#auth-endpoint)
+    - [Students Endpoint](#students-endpoint)
+    - [Courses Endpoint](#courses-endpoint)
 
 ## Live ( deployed version ) 
 
@@ -84,4 +88,46 @@ The student created will then be register to Mathematics course.
 
 Continue testing......
 
-Best of luck
+
+
+## Available Endpoint
+
+### Auth Endpoint
+| ROUTE | METHOD | DESCRIPTION | AUTHORIZATION  | USER TYPE |  PLACEHOLDER | 
+| ------- | ----- | ----- | ------|------- | ----- |
+|  `auth/register` | _POST_ | It allows the  creation of a student account   | Any | Any |  ---- | 
+|  `auth/register/teacher` |  _POST_ | It allows the creation of a teacher account   | Authenticated | Amin | ---- | 
+|  `auth/token` |  _POST_  | It allows user authentication   | Any | Any | ---- | 
+|  `auth/token/refresh` |  _POST_  | It allows user refresh their tokens   | Authenticated | Any | ---- | 
+|  `auth/password-reset/<token>` |  _POST_  | It allows user reset new password  | Any | Any | A reset token | 
+|  `auth/password-reset-request` |  _POST_  | It allows user request new password if they forget their password | Any | Any |  ---- | 
+|  `auth/password-change` |  _POST_  | It allows user change new password | Authenticated | Any |---- |
+
+
+### Students Endpoint
+| ROUTE | METHOD | DESCRIPTION | AUTHORIZATION  | USER TYPE |  PLACEHOLDER | 
+| ------- | ----- | ----- | ------|------- | ----- |
+|  `students` |  _GET_  | It allows the retrieval all student is the school   | Authenticated | Admin | ---- |
+|  `students/<student_id>` |  _GET_  | It allows the  retrieval of a student | Authenticated | Any | A student ID |
+|  `students/<student_id>/courses/grade` |  _GET_  | It allows the retrieval a student all courses grade   | Authenticated | Any | A student ID |
+|  `students/<student_id>/courses` |  _GET_  | It allows the retrieval of a student courses   | Authenticated | ---- | A student ID |
+|  `students/<student_id>/gpa` |  _GET_  | Calculate a student gpa score   | Authenticated | Any | A student ID |
+|  `students/courses/add_and_drop` |  _POST_  | It allows student register a course   | Authenticated | ---- | ---- |
+|  `students/courses/add_and_drop` |  _DELETE_  | It allows student unregister a course   | Authenticated | Student | ---- |
+|  `students/course/add_score` |  _PUT_  | It allow teacher add a student score in a course | Authenticated | Teacher | ---- |
+
+
+### Courses Endpoint
+| ROUTE | METHOD | DESCRIPTION | AUTHORIZATION  | USER TYPE |  PLACEHOLDER | 
+| ------- | ----- | ----- | ------|------- | ----- |
+|  `courses` |  _GET_  | It allows the retrieval of all available courses   | Authenticated | Any | ---- |
+|  `courses` |  _POST_  | It allows the creation of a new course   | Authenticated | Admin | ---- |
+|  `courses` |  _DELETE_  | It allows deleting a course   | Authenticated | Admin | ---- |
+|  `courses/<course_id>` |  _GET_  | It allows the retrieval all student is the school   | Authenticated | Admin | A course ID |
+|  `courses/<course_id>/students` |  _GET_  | It allows the  retrieval of all students in a courses | Authenticated | Any | A course ID |
+|  `courses/<course_id>/students/add_and_drop` |  _POST_  | It allows teacher add a  student the their course | Authenticated | Teacher | A course ID |
+|  `courses/<course_id>/students/add_and_drop` |  _DELETE_  | It allows teacher remove a  student from their course | Authenticated | Teacher | A course ID |
+|  `courses/grade` |  _GET_  | It allows student retrieve all registered courses grade | Authenticated | Student | ---- |
+
+
+
