@@ -106,7 +106,7 @@ Continue testing......
 
 ### Students Endpoint
 | ROUTE | METHOD | DESCRIPTION | AUTHORIZATION  | USER TYPE |  PLACEHOLDER | 
-| ------- | ----- | ----- | ------|------- | ----- |
+| ------- | ----- | ---------- | ------|------- | ----- |
 |  `students` |  _GET_  | It allows the retrieval all student is the school   | Authenticated | Admin | ---- |
 |  `students/<student_id>` |  _GET_  | It allows the  retrieval of a student | Authenticated | Any | A student ID |
 |  `students/<student_id>/courses/grade` |  _GET_  | It allows the retrieval a student all courses grade   | Authenticated | Any | A student ID |
