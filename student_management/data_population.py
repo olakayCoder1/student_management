@@ -1,5 +1,6 @@
 from student_management.models import Admin , Teacher , Course ,Student , StudentCourse
 from werkzeug.security import generate_password_hash
+from student_management import db
 from student_management.utils import ( random_char )
 import datetime 
 
@@ -39,20 +40,20 @@ def populate_db():
         try:
             admin.save()
         except:
-            pass
+            db.session.rollback()
 
     for user in teachers:
         identifier=random_char(10)  
         current_year =  str(datetime.datetime.now().year)
         employee_no= 'TCH@' + random_char(6) + current_year
-        admin = Teacher(email=user['email'],first_name=user['first_name'],last_name=user['last_name'], 
+        teacher = Teacher(email=user['email'],first_name=user['first_name'],last_name=user['last_name'], 
                     password_hash=generate_password_hash(user['password']),user_type='teacher', 
                     employee_no=employee_no, identifier=identifier
                 )
         try:
-            admin.save()
+            teacher.save()
         except:
-            pass
+            db.session.rollback()
 
     
     for course in courses:
@@ -63,7 +64,7 @@ def populate_db():
         try:
             data.save()
         except:
-            pass
+            db.session.rollback()
 
     for user in students:
         identifier=random_char(10)  
@@ -79,6 +80,6 @@ def populate_db():
             student_course = StudentCourse(student_id=student.id, course_id=course.id)
             student_course.save() 
         except:
-            pass
+            db.session.rollback()
 
 
