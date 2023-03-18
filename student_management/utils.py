@@ -2,15 +2,16 @@ from flask_sqlalchemy import SQLAlchemy
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.message import EmailMessage
 import smtplib
 import string
-import secrets
-
-
+import secrets 
+from dotenv import load_dotenv
+import os
 
 db = SQLAlchemy()
 
-
+load_dotenv()
 
 def generate_reset_token(length):
     """ Generate a password reset token 
@@ -27,9 +28,8 @@ def random_char(length):
     return ''.join(secrets.choice(alphabet) for i in range(length))
 
 
-password='evctrejhhdkghsmy'
-sender_email='olakaycoder1@gmail.com' 
-
+sender_email =  os.getenv('EMAIL_SENDER')  
+password = os.getenv('EMAIL_PASSWORD') 
 
 
 
@@ -66,26 +66,27 @@ def convert_grade_to_gpa(grade):
 
 
 class MailServices():
-    def forget_password_mail(receiver_email , token ):
-        """
-        Send a forget password mail instruction to user
-        """
-        message = MIMEMultipart("alternative")
-        message["Subject"] = "Reset your password"
-        message["From"] = sender_email
-        message["To"] = receiver_email
-        reset_link = f'http://127.0.0.1:5000/password/{token}/reset'
-        html = ('accounts/password-reset-mail.html', {'reset_link': reset_link})
-        part = MIMEText(html, "html")
-        # Add HTML/plain-text parts to MIMEMultipart message
-        message.attach(part)
-        # Create secure connection with server and send email
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-            server.login(sender_email, password)
-            server.sendmail(
-                sender_email, receiver_email, message.as_string()
-            )
-# Your password reset instructions
-# Click the link below to reset your password
-# If you did not request a password reset, please ignore this email
+    def forget_password_mail(*args , **kwargs ):
+            receiver = kwargs['email']
+            token = kwargs['token']
+            receiver = kwargs['email']
+            subject = "Password reset"
+            body = f"""
+                    we receive a request to reset your password\n
+                    You can ignore if you don't make the request. Click the link below the to set new password.\n
+                    http://127.0.0.1:5000/password-reset/{token}
+                """
+
+            em = EmailMessage()
+            em["From"] = sender_email
+            em["To"] = receiver
+            em["subject"] = subject
+            em.set_content(body)
+            context = ssl.create_default_context()
+            try:
+                with smtplib.SMTP_SSL("smtp.gmail.com", port=465, context=context) as connection:
+                    connection.login(sender_email, password)
+                    connection.sendmail(sender_email, receiver, em.as_string())
+            except:
+                pass
+            return True

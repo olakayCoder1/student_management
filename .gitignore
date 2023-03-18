@@ -4,3 +4,4 @@ database.sqlite3
 help.txt
 .env
 olakay.py
+migrations/

@@ -12,7 +12,7 @@ from werkzeug.security import (
 from flask import  request 
 from flask_restx import Namespace, Resource
 from student_management.models import(
-     User , Student ,Teacher 
+     User , Student ,Teacher , Admin
 )
 from student_management import db 
 from student_management.decorators import ( admin_required )
@@ -79,8 +79,9 @@ class StudentRegistrationView(Resource):
         return {'message': 'User registered successfully as a {}'.format(new_user.user_type)}, HTTPStatus.CREATED
 
 
-@auth_namespace.route('/register/teacher')
+@auth_namespace.route('/register/admin')
 class TeacherCreationView(Resource):
+
     @auth_namespace.expect(register_serializer)
     @auth_namespace.doc(
         description="""
@@ -88,9 +89,8 @@ class TeacherCreationView(Resource):
             It allows admin create a teacher
             """
     )
-    @admin_required()
     def post(self):
-        """ Create a new teacher account """
+        """ Create a new admin account """
         data = request.get_json()
         # Check if user already exists
         user = User.query.filter_by(email=data.get('email', None)).first()
@@ -98,13 +98,12 @@ class TeacherCreationView(Resource):
             return {'message' : 'Email already exists'} , HTTPStatus.CONFLICT
         # Create new user
         identifier=random_char(10)  
-        current_year =  str(datetime.datetime.now().year)
-        employee= 'TCH@' + random_char(6) + current_year
-        new_user = Teacher(
+        new_user = Admin(
             email=data.get('email'), identifier=identifier,
             first_name=data.get('first_name'), last_name=data.get('last_name'),
-            user_type = 'teacher', password_hash = generate_password_hash(data.get('password')),
-            employee_no=employee
+            user_type = 'admin', password_hash = generate_password_hash(data.get('password')),
+            designation = 'Principal' , rc_number = data.get('rc_number'),
+            school_mail = data.get('school_email')
             )
         try:
             new_user.save()

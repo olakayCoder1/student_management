@@ -35,7 +35,12 @@ Install necessary dependency to run the project
 ```console
 pip install -r requirements.txt
 ```
-Create database from migration files 
+Create database  
+
+
+```console
+flask db init
+```
 
 ```console
 flask db migrate -m "your description"

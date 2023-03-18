@@ -6,7 +6,6 @@ password_reset_request_fields_serializer = {
 }
 
 password_reset_fields_serializer = {
-    'token': fields.String(required=True, description="Password reset token"),
     'password1': fields.String(required=True, description="Password"),
     'password2': fields.String(required=True, description="Confirm password"),
 }

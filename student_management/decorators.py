@@ -35,7 +35,7 @@ def admin_required():
             print(claims)
             if get_user_type(claims['sub']) == 'admin':
                 return fn(*args,**kwargs)
-            return jsonify({'msg':"Admin only!"}) , HTTPStatus.UNAUTHORIZED
+            return {'msg':"Admin only!"} , HTTPStatus.UNAUTHORIZED
         return decorator
     return wrapper
 
@@ -57,7 +57,7 @@ def staff_required():
             claims = get_jwt()
             if get_user_type(claims['sub']) == 'admin' or get_user_type(claims['sub']) == 'teacher':
                 return fn(*args,**kwargs)
-            return jsonify({'msg': "Staff Only!" }) , HTTPStatus.UNAUTHORIZED
+            return {'msg': "Staff Only!" } , HTTPStatus.UNAUTHORIZED
         return decorator
     return wrapper
 
@@ -77,7 +77,7 @@ def teacher_required():
             claims = get_jwt()
             if get_user_type(claims['sub']) == 'teacher' :
                 return fn(*args,**kwargs)
-            return jsonify({'msg': "Student Only!" }) , HTTPStatus.UNAUTHORIZED
+            return {'msg': "Student Only!" } , HTTPStatus.UNAUTHORIZED
         return decorator
     return wrapper
 
@@ -96,6 +96,6 @@ def student_required():
             claims = get_jwt()
             if get_user_type(claims['sub']) == 'student' :
                 return fn(*args,**kwargs)
-            return jsonify({'msg': "Student Only!" }) , HTTPStatus.UNAUTHORIZED
+            return {'msg': "Student Only!" } , HTTPStatus.UNAUTHORIZED
         return decorator
     return wrapper
