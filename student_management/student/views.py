@@ -75,7 +75,7 @@ class StudentRetrieveDeleteUpdateView(Resource):
 @students_namespace.route('/<int:student_id>/courses/grade')
 class StudentCoursesGradeListView(Resource):
 
-    @admin_required()
+    @admin_required()  
     def get(self, student_id):
         """
         Retrieve a student all courses grade

@@ -29,7 +29,7 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     TESTING=True
     SQLALCHEMY_ECHO=True
-    SQLALCHEMY_DATABASE_URI='sqlite://'
+    SQLALCHEMY_DATABASE_URI='sqlite:///'+os.path.join(BASE_DIR, 'test_database.sqlite3' )
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 
 

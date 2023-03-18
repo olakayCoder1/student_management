@@ -1,6 +1,7 @@
 venv/
 __pycache__/
 database.sqlite3
+test_database.sqlite3
 help.txt
 .env
 olakay.py
